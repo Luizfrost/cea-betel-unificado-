@@ -1,0 +1,491 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+}
+
+#app {
+    width: 100%;
+    max-width: 450px;
+    background: white;
+    border-radius: 30px;
+    box-shadow: 0 20px 60px rgba(0, 59, 125, 0.3);
+    overflow: hidden;
+    position: relative;
+    min-height: 600px;
+    display: flex;
+    flex-direction: column;
+}
+
+.app-header {
+    background: linear-gradient(135deg, #003b7d 0%, #0066b3 50%, #4a9fe1 100%);
+    color: white;
+    padding: 25px 20px 20px;
+    position: relative;
+}
+
+.app-header h1 {
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.app-header h1 span {
+    font-size: 14px;
+    background: rgba(255,255,255,0.2);
+    padding: 3px 10px;
+    border-radius: 20px;
+}
+
+.app-header .user-greeting {
+    font-size: 14px;
+    opacity: 0.9;
+    margin-top: 5px;
+}
+
+.app-content {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    background: #f8faff;
+    padding-bottom: 80px;
+}
+
+.bottom-nav {
+    position: sticky;
+    bottom: 0;
+    background: white;
+    display: flex;
+    justify-content: space-around;
+    padding: 10px 5px;
+    border-top: 2px solid #e6edf5;
+    box-shadow: 0 -5px 20px rgba(0,59,125,0.1);
+}
+
+.nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    color: #7f8c9f;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.3s;
+    padding: 5px 10px;
+    border-radius: 10px;
+    flex: 1;
+}
+
+.nav-item i {
+    font-size: 20px;
+}
+
+.nav-item.active {
+    color: #003b7d;
+    background: linear-gradient(135deg, #e6f0ff 0%, #d4e4ff 100%);
+}
+
+.nav-item.active i {
+    color: #0066b3;
+}
+
+.card {
+    background: white;
+    border-radius: 20px;
+    padding: 20px;
+    margin-bottom: 15px;
+    box-shadow: 0 5px 20px rgba(0,59,125,0.08);
+    border: 1px solid rgba(0,102,179,0.1);
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.card-header h3 {
+    color: #003b7d;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.card-header i {
+    color: #0066b3;
+    font-size: 24px;
+}
+
+.login-container {
+    min-height: 600px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 30px;
+    background: linear-gradient(135deg, #003b7d 0%, #0066b3 50%, #4a9fe1 100%);
+}
+
+.login-card {
+    background: white;
+    border-radius: 30px;
+    padding: 40px 30px;
+    width: 100%;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    animation: slideUp 0.5s ease;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.login-card h2 {
+    color: #003b7d;
+    margin-bottom: 10px;
+    font-size: 32px;
+    font-weight: 700;
+}
+
+.login-card .subtitle {
+    color: #666;
+    margin-bottom: 30px;
+    font-size: 14px;
+}
+
+.input-group {
+    margin-bottom: 20px;
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: #003b7d;
+    font-weight: 500;
+    font-size: 14px;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 15px;
+    border: 2px solid #e0e8f0;
+    border-radius: 15px;
+    font-size: 16px;
+    transition: all 0.3s;
+}
+
+.input-group input:focus {
+    outline: none;
+    border-color: #0066b3;
+    box-shadow: 0 0 0 3px rgba(0,102,179,0.1);
+}
+
+.login-btn {
+    width: 100%;
+    padding: 15px;
+    background: linear-gradient(135deg, #003b7d 0%, #0066b3 100%);
+    color: white;
+    border: none;
+    border-radius: 15px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin-top: 10px;
+}
+
+.login-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(0,59,125,0.3);
+}
+
+.mensagem {
+    margin-top: 20px;
+    padding: 10px;
+    border-radius: 10px;
+    text-align: center;
+    font-size: 14px;
+    display: none;
+}
+
+.mensagem.erro {
+    display: block;
+    background: #fee;
+    color: #c33;
+    border: 1px solid #fcc;
+}
+
+.mensagem.sucesso {
+    display: block;
+    background: #e8f5e9;
+    color: #2e7d32;
+    border: 1px solid #a5d6a7;
+}
+
+.welcome-card {
+    background: linear-gradient(135deg, #e6f0ff 0%, #d4e4ff 100%);
+    border-left: 5px solid #003b7d;
+}
+
+.culto-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 15px 0;
+}
+
+.culto-dia {
+    font-size: 18px;
+    font-weight: 600;
+    color: #003b7d;
+}
+
+.culto-horario {
+    background: #003b7d;
+    color: white;
+    padding: 5px 15px;
+    border-radius: 25px;
+    font-weight: 600;
+}
+
+.escala-status {
+    background: white;
+    border-radius: 15px;
+    padding: 15px;
+    margin: 15px 0;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.status-sim {
+    color: #28a745;
+    font-weight: 600;
+}
+
+.status-nao {
+    color: #dc3545;
+    font-weight: 600;
+}
+
+.aviso-item {
+    background: white;
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 10px;
+    border-left: 4px solid #003b7d;
+}
+
+.aviso-titulo {
+    font-weight: 600;
+    color: #003b7d;
+    margin-bottom: 5px;
+}
+
+.aviso-mensagem {
+    color: #666;
+    font-size: 14px;
+}
+
+.escala-card {
+    background: white;
+    border-radius: 15px;
+    padding: 15px;
+    margin-bottom: 10px;
+    border: 1px solid #e6edf5;
+}
+
+.escala-data {
+    color: #003b7d;
+    font-weight: 600;
+    font-size: 16px;
+    margin-bottom: 5px;
+}
+
+.escala-detalhes {
+    display: flex;
+    justify-content: space-between;
+    color: #666;
+    font-size: 14px;
+}
+
+.escala-funcao {
+    background: #e6f0ff;
+    color: #003b7d;
+    padding: 5px 12px;
+    border-radius: 15px;
+    font-weight: 500;
+    font-size: 13px;
+}
+
+.aviso-alta {
+    border-left: 5px solid #dc3545;
+    background: #fff5f5;
+}
+
+.aviso-media {
+    border-left: 5px solid #ffc107;
+    background: #fff9e6;
+}
+
+.aviso-baixa {
+    border-left: 5px solid #28a745;
+    background: #f0f9f0;
+}
+
+.importancia-badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.badge-alta {
+    background: #dc3545;
+    color: white;
+}
+
+.badge-media {
+    background: #ffc107;
+    color: #333;
+}
+
+.badge-baixa {
+    background: #28a745;
+    color: white;
+}
+
+.aniversariante-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 12px;
+    border-bottom: 1px solid #e6edf5;
+}
+
+.aniversariante-avatar {
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, #003b7d 0%, #0066b3 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 20px;
+}
+
+.aniversariante-info {
+    flex: 1;
+}
+
+.aniversariante-nome {
+    font-weight: 600;
+    color: #003b7d;
+    margin-bottom: 3px;
+}
+
+.aniversariante-dia {
+    color: #666;
+    font-size: 14px;
+}
+
+.aniversariante-dia i {
+    color: #ffc107;
+    margin-right: 5px;
+}
+
+.evento-card {
+    background: white;
+    border-radius: 15px;
+    padding: 15px;
+    margin-bottom: 10px;
+    display: flex;
+    gap: 15px;
+    border: 1px solid #e6edf5;
+}
+
+.evento-data {
+    min-width: 60px;
+    text-align: center;
+}
+
+.evento-dia {
+    font-size: 24px;
+    font-weight: 700;
+    color: #003b7d;
+    line-height: 1;
+}
+
+.evento-mes {
+    font-size: 12px;
+    color: #666;
+    text-transform: uppercase;
+}
+
+.evento-info {
+    flex: 1;
+}
+
+.evento-titulo {
+    font-weight: 600;
+    color: #003b7d;
+    margin-bottom: 5px;
+}
+
+.evento-horario {
+    color: #666;
+    font-size: 13px;
+    margin-bottom: 3px;
+}
+
+.evento-descricao {
+    color: #888;
+    font-size: 12px;
+}
+
+.loading {
+    text-align: center;
+    padding: 40px;
+    color: #003b7d;
+}
+
+.loading i {
+    font-size: 40px;
+    margin-bottom: 15px;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: #999;
+}
+
+.empty-state i {
+    font-size: 48px;
+    margin-bottom: 15px;
+    color: #0066b3;
+    opacity: 0.5;
+}
