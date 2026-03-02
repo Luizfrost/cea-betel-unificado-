@@ -8,7 +8,9 @@ const __dirname = path.dirname(__filename);
 
 class Database {
     constructor() {
-        this.dbPath = path.join(__dirname, 'cea-betel.db');
+       this.dbPath = process.env.NODE_ENV === 'production' 
+  ? '/data/cea-betel.db' 
+  : path.join(__dirname, 'cea-betel.db');
         this.db = new sqlite3.Database(this.dbPath);
         this.inicializar();
     }
