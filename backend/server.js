@@ -18,12 +18,37 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const JWT_SECRET = process.env.JWT_SECRET || 'cea-betel-secret-key';
+const JWT_SECRET = process.env.JWT_SECRET || 'cea-betel-secret-key-2025';
 
 // Middlewares
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true }));
+
+// ========== CONFIGURAÇÃO DE ARQUIVOS ESTÁTICOS ==========
+// Servir arquivos estáticos da pasta public
 app.use(express.static(path.join(__dirname, '../public')));
+
+// Rota específica para o app dos membros
+app.use('/app-membro', express.static(path.join(__dirname, '../public/app-membro')));
+
+// Rota específica para o admin
+app.use('/admin', express.static(path.join(__dirname, '../public/admin')));
+
+// Rota principal - redireciona para app-membro
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, '../public/app-membro/index.html'));
+});
+
+// Rota para o app-membro
+app.get('/app-membro', (req, res) => {
+    res.sendFile(path.join(__dirname, '../public/app-membro/index.html'));
+});
+
+// Rota para o admin
+app.get('/admin', (req, res) => {
+    res.sendFile(path.join(__dirname, '../public/admin/index.html'));
+});
 
 // ========== ROTAS PÚBLICAS (APP MEMBROS) ==========
 
@@ -61,7 +86,7 @@ app.post('/api/membros/login', async (req, res) => {
             permissoes: membro.permissoes
         });
     } catch (error) {
-        console.error(error);
+        console.error('Erro no login:', error);
         res.status(500).json({ erro: 'Erro no servidor' });
     }
 });
@@ -86,6 +111,7 @@ app.get('/api/membros/home/:membroId', async (req, res) => {
             avisosImportantes: avisos || []
         });
     } catch (error) {
+        console.error('Erro na home:', error);
         res.status(500).json({ erro: 'Erro no servidor' });
     }
 });
@@ -108,6 +134,7 @@ app.get('/api/membros/escalas/:membroId', async (req, res) => {
         
         res.json(escalas);
     } catch (error) {
+        console.error('Erro nas escalas:', error);
         res.status(500).json({ erro: 'Erro no servidor' });
     }
 });
@@ -127,6 +154,7 @@ app.get('/api/membros/avisos', async (req, res) => {
         `);
         res.json(avisos);
     } catch (error) {
+        console.error('Erro nos avisos:', error);
         res.status(500).json({ erro: 'Erro no servidor' });
     }
 });
@@ -145,6 +173,7 @@ app.get('/api/membros/aniversariantes', async (req, res) => {
         
         res.json(aniversariantes);
     } catch (error) {
+        console.error('Erro nos aniversariantes:', error);
         res.status(500).json({ erro: 'Erro no servidor' });
     }
 });
@@ -163,6 +192,7 @@ app.get('/api/membros/eventos', async (req, res) => {
         
         res.json(eventos);
     } catch (error) {
+        console.error('Erro nos eventos:', error);
         res.status(500).json({ erro: 'Erro no servidor' });
     }
 });
@@ -209,6 +239,7 @@ app.post('/api/admin/login', async (req, res) => {
             }
         });
     } catch (error) {
+        console.error('Erro no login admin:', error);
         res.status(500).json({ erro: 'Erro no servidor' });
     }
 });
@@ -242,13 +273,14 @@ app.get('/api/admin/dashboard', autenticarAdmin, async (req, res) => {
         ]);
         
         res.json({
-            membros: parseInt(membros.total) || 0,
-            escalas: parseInt(escalas.total) || 0,
-            avisos: parseInt(avisos.total) || 0,
-            eventos: parseInt(eventos.total) || 0,
-            financeiro: parseFloat(financeiro.total) || 0
+            membros: parseInt(membros?.total) || 0,
+            escalas: parseInt(escalas?.total) || 0,
+            avisos: parseInt(avisos?.total) || 0,
+            eventos: parseInt(eventos?.total) || 0,
+            financeiro: parseFloat(financeiro?.total) || 0
         });
     } catch (error) {
+        console.error('Erro no dashboard:', error);
         res.status(500).json({ erro: 'Erro no servidor' });
     }
 });
@@ -259,6 +291,7 @@ app.get('/api/admin/membros', autenticarAdmin, async (req, res) => {
         const membros = await db.query("SELECT * FROM membros ORDER BY nome");
         res.json(membros);
     } catch (error) {
+        console.error('Erro ao listar membros:', error);
         res.status(500).json({ erro: 'Erro no servidor' });
     }
 });
@@ -281,6 +314,7 @@ app.post('/api/admin/membros', autenticarAdmin, async (req, res) => {
         
         res.json({ id: result.id, success: true });
     } catch (error) {
+        console.error('Erro ao criar membro:', error);
         res.status(400).json({ erro: 'Email já cadastrado' });
     }
 });
@@ -295,6 +329,7 @@ app.put('/api/admin/membros/:id', autenticarAdmin, async (req, res) => {
         );
         res.json({ success: true });
     } catch (error) {
+        console.error('Erro ao atualizar membro:', error);
         res.status(400).json({ erro: error.message });
     }
 });
@@ -304,6 +339,7 @@ app.delete('/api/admin/membros/:id', autenticarAdmin, async (req, res) => {
         await db.run("DELETE FROM membros WHERE id = $1", [req.params.id]);
         res.json({ success: true });
     } catch (error) {
+        console.error('Erro ao excluir membro:', error);
         res.status(400).json({ erro: error.message });
     }
 });
@@ -332,6 +368,7 @@ app.get('/api/admin/escalas', autenticarAdmin, async (req, res) => {
         const escalas = await db.query(query, params);
         res.json(escalas);
     } catch (error) {
+        console.error('Erro ao listar escalas:', error);
         res.status(500).json({ erro: 'Erro no servidor' });
     }
 });
@@ -346,6 +383,32 @@ app.post('/api/admin/escalas', autenticarAdmin, async (req, res) => {
         );
         res.json({ id: result.id, success: true });
     } catch (error) {
+        console.error('Erro ao criar escala:', error);
+        res.status(400).json({ erro: error.message });
+    }
+});
+
+app.put('/api/admin/escalas/:id', autenticarAdmin, async (req, res) => {
+    const { data, horario, funcao, membro1_id, membro2_id, observacoes } = req.body;
+    
+    try {
+        await db.run(
+            "UPDATE escalas SET data = $1, horario = $2, funcao = $3, membro1_id = $4, membro2_id = $5, observacoes = $6 WHERE id = $7",
+            [data, horario, funcao, membro1_id, membro2_id || null, observacoes, req.params.id]
+        );
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Erro ao atualizar escala:', error);
+        res.status(400).json({ erro: error.message });
+    }
+});
+
+app.delete('/api/admin/escalas/:id', autenticarAdmin, async (req, res) => {
+    try {
+        await db.run("DELETE FROM escalas WHERE id = $1", [req.params.id]);
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Erro ao excluir escala:', error);
         res.status(400).json({ erro: error.message });
     }
 });
@@ -365,6 +428,7 @@ app.get('/api/admin/avisos', autenticarAdmin, async (req, res) => {
         `);
         res.json(avisos);
     } catch (error) {
+        console.error('Erro ao listar avisos:', error);
         res.status(500).json({ erro: 'Erro no servidor' });
     }
 });
@@ -379,6 +443,7 @@ app.post('/api/admin/avisos', autenticarAdmin, async (req, res) => {
         );
         res.json({ id: result.id, success: true });
     } catch (error) {
+        console.error('Erro ao criar aviso:', error);
         res.status(400).json({ erro: error.message });
     }
 });
@@ -388,6 +453,7 @@ app.delete('/api/admin/avisos/:id', autenticarAdmin, async (req, res) => {
         await db.run("DELETE FROM avisos WHERE id = $1", [req.params.id]);
         res.json({ success: true });
     } catch (error) {
+        console.error('Erro ao excluir aviso:', error);
         res.status(400).json({ erro: error.message });
     }
 });
@@ -398,6 +464,7 @@ app.get('/api/admin/eventos', autenticarAdmin, async (req, res) => {
         const eventos = await db.query("SELECT * FROM eventos ORDER BY data, horario");
         res.json(eventos);
     } catch (error) {
+        console.error('Erro ao listar eventos:', error);
         res.status(500).json({ erro: 'Erro no servidor' });
     }
 });
@@ -412,6 +479,7 @@ app.post('/api/admin/eventos', autenticarAdmin, async (req, res) => {
         );
         res.json({ id: result.id, success: true });
     } catch (error) {
+        console.error('Erro ao criar evento:', error);
         res.status(400).json({ erro: error.message });
     }
 });
@@ -421,6 +489,7 @@ app.delete('/api/admin/eventos/:id', autenticarAdmin, async (req, res) => {
         await db.run("DELETE FROM eventos WHERE id = $1", [req.params.id]);
         res.json({ success: true });
     } catch (error) {
+        console.error('Erro ao excluir evento:', error);
         res.status(400).json({ erro: error.message });
     }
 });
@@ -453,6 +522,7 @@ app.get('/api/admin/financeiro', autenticarAdmin, async (req, res) => {
             totais
         });
     } catch (error) {
+        console.error('Erro no financeiro:', error);
         res.status(500).json({ erro: 'Erro no servidor' });
     }
 });
@@ -467,6 +537,7 @@ app.post('/api/admin/financeiro', autenticarAdmin, async (req, res) => {
         );
         res.json({ id: result.id, success: true });
     } catch (error) {
+        console.error('Erro ao criar registro financeiro:', error);
         res.status(400).json({ erro: error.message });
     }
 });
@@ -476,6 +547,7 @@ app.delete('/api/admin/financeiro/:id', autenticarAdmin, async (req, res) => {
         await db.run("DELETE FROM financeiro WHERE id = $1", [req.params.id]);
         res.json({ success: true });
     } catch (error) {
+        console.error('Erro ao excluir registro financeiro:', error);
         res.status(400).json({ erro: error.message });
     }
 });
@@ -488,6 +560,7 @@ app.get('/api/admin/configuracoes', autenticarAdmin, async (req, res) => {
         configs.forEach(row => config[row.chave] = row.valor);
         res.json(config);
     } catch (error) {
+        console.error('Erro ao buscar configurações:', error);
         res.status(500).json({ erro: 'Erro no servidor' });
     }
 });
@@ -502,6 +575,7 @@ app.post('/api/admin/configuracoes', autenticarAdmin, async (req, res) => {
         );
         res.json({ success: true });
     } catch (error) {
+        console.error('Erro ao salvar configuração:', error);
         res.status(400).json({ erro: error.message });
     }
 });
@@ -524,6 +598,7 @@ app.post('/api/admin/alterar-senha', autenticarAdmin, async (req, res) => {
         await db.run("UPDATE admin SET senha = $1 WHERE id = $2", [hash, req.admin.id]);
         res.json({ success: true });
     } catch (error) {
+        console.error('Erro ao alterar senha:', error);
         res.status(500).json({ erro: 'Erro ao alterar senha' });
     }
 });
@@ -534,17 +609,13 @@ app.get('/api/admin/logs', autenticarAdmin, async (req, res) => {
         const logs = await db.query("SELECT * FROM logs ORDER BY data DESC, hora DESC LIMIT 100");
         res.json(logs);
     } catch (error) {
+        console.error('Erro ao buscar logs:', error);
         res.status(500).json({ erro: 'Erro ao buscar logs' });
     }
 });
 
-// Rota principal
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '../public', 'index.html'));
-});
-
-// Iniciar servidor
-app.listen(PORT, () => {
+// ========== INICIAR SERVIDOR ==========
+app.listen(PORT, '0.0.0.0', () => {
     console.log('\n' + '='.repeat(50));
     console.log('⛪ CEA BETEL BERTIOGA - RENDER');
     console.log('='.repeat(50));
