@@ -1,20 +1,18 @@
 {
-  "name": "cea-betel-bertioga",
+  "name": "cea-betel-render",
   "version": "3.0.0",
-  "description": "Sistema Completo CEA Betel Bertioga - App Membros + Painel Admin",
+  "description": "Sistema CEA Betel Bertioga - Otimizado para Render",
   "type": "module",
   "scripts": {
     "start": "node backend/server.js",
-    "dev": "node backend/server.js"
+    "dev": "node --watch backend/server.js"
   },
   "dependencies": {
     "express": "^4.18.2",
-    "sqlite3": "^5.1.6",
+    "pg": "^8.11.3",
     "cors": "^2.8.5",
     "bcryptjs": "^2.4.3",
     "jsonwebtoken": "^9.0.2",
-    "nodemailer": "^6.9.7",
-    "crypto": "^1.0.1",
-    "web-push": "^3.6.7"
+    "dotenv": "^16.3.1"
   }
 }

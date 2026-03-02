@@ -31,7 +31,6 @@ body {
     background: linear-gradient(135deg, #003b7d 0%, #0066b3 50%, #4a9fe1 100%);
     color: white;
     padding: 25px 20px 20px;
-    position: relative;
 }
 
 .app-header h1 {
@@ -124,11 +123,6 @@ body {
     font-weight: 600;
 }
 
-.card-header i {
-    color: #0066b3;
-    font-size: 24px;
-}
-
 .login-container {
     min-height: 600px;
     display: flex;
@@ -136,7 +130,7 @@ body {
     justify-content: center;
     align-items: center;
     padding: 30px;
-    background: linear-gradient(135deg, #003b7d 0%, #0066b3 50%, #4a9fe1 100%);
+    background: linear-gradient(135deg, #003b7d 0%, #0066b3 100%);
 }
 
 .login-card {
@@ -163,13 +157,6 @@ body {
     color: #003b7d;
     margin-bottom: 10px;
     font-size: 32px;
-    font-weight: 700;
-}
-
-.login-card .subtitle {
-    color: #666;
-    margin-bottom: 30px;
-    font-size: 14px;
 }
 
 .input-group {
@@ -181,7 +168,6 @@ body {
     margin-bottom: 8px;
     color: #003b7d;
     font-weight: 500;
-    font-size: 14px;
 }
 
 .input-group input {
@@ -231,19 +217,12 @@ body {
     display: block;
     background: #fee;
     color: #c33;
-    border: 1px solid #fcc;
 }
 
 .mensagem.sucesso {
     display: block;
     background: #e8f5e9;
     color: #2e7d32;
-    border: 1px solid #a5d6a7;
-}
-
-.welcome-card {
-    background: linear-gradient(135deg, #e6f0ff 0%, #d4e4ff 100%);
-    border-left: 5px solid #003b7d;
 }
 
 .culto-info {
@@ -295,17 +274,6 @@ body {
     border-left: 4px solid #003b7d;
 }
 
-.aviso-titulo {
-    font-weight: 600;
-    color: #003b7d;
-    margin-bottom: 5px;
-}
-
-.aviso-mensagem {
-    color: #666;
-    font-size: 14px;
-}
-
 .escala-card {
     background: white;
     border-radius: 15px;
@@ -334,147 +302,6 @@ body {
     padding: 5px 12px;
     border-radius: 15px;
     font-weight: 500;
-    font-size: 13px;
-}
-
-.aviso-alta {
-    border-left: 5px solid #dc3545;
-    background: #fff5f5;
-}
-
-.aviso-media {
-    border-left: 5px solid #ffc107;
-    background: #fff9e6;
-}
-
-.aviso-baixa {
-    border-left: 5px solid #28a745;
-    background: #f0f9f0;
-}
-
-.importancia-badge {
-    display: inline-block;
-    padding: 3px 8px;
-    border-radius: 12px;
-    font-size: 11px;
-    font-weight: 600;
-    margin-bottom: 8px;
-}
-
-.badge-alta {
-    background: #dc3545;
-    color: white;
-}
-
-.badge-media {
-    background: #ffc107;
-    color: #333;
-}
-
-.badge-baixa {
-    background: #28a745;
-    color: white;
-}
-
-.aniversariante-item {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    padding: 12px;
-    border-bottom: 1px solid #e6edf5;
-}
-
-.aniversariante-avatar {
-    width: 50px;
-    height: 50px;
-    background: linear-gradient(135deg, #003b7d 0%, #0066b3 100%);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-weight: bold;
-    font-size: 20px;
-}
-
-.aniversariante-info {
-    flex: 1;
-}
-
-.aniversariante-nome {
-    font-weight: 600;
-    color: #003b7d;
-    margin-bottom: 3px;
-}
-
-.aniversariante-dia {
-    color: #666;
-    font-size: 14px;
-}
-
-.aniversariante-dia i {
-    color: #ffc107;
-    margin-right: 5px;
-}
-
-.evento-card {
-    background: white;
-    border-radius: 15px;
-    padding: 15px;
-    margin-bottom: 10px;
-    display: flex;
-    gap: 15px;
-    border: 1px solid #e6edf5;
-}
-
-.evento-data {
-    min-width: 60px;
-    text-align: center;
-}
-
-.evento-dia {
-    font-size: 24px;
-    font-weight: 700;
-    color: #003b7d;
-    line-height: 1;
-}
-
-.evento-mes {
-    font-size: 12px;
-    color: #666;
-    text-transform: uppercase;
-}
-
-.evento-info {
-    flex: 1;
-}
-
-.evento-titulo {
-    font-weight: 600;
-    color: #003b7d;
-    margin-bottom: 5px;
-}
-
-.evento-horario {
-    color: #666;
-    font-size: 13px;
-    margin-bottom: 3px;
-}
-
-.evento-descricao {
-    color: #888;
-    font-size: 12px;
-}
-
-.loading {
-    text-align: center;
-    padding: 40px;
-    color: #003b7d;
-}
-
-.loading i {
-    font-size: 40px;
-    margin-bottom: 15px;
 }
 
 .empty-state {
@@ -488,101 +315,4 @@ body {
     margin-bottom: 15px;
     color: #0066b3;
     opacity: 0.5;
-}
-/* Estilos para recuperação de senha */
-.reset-password-link {
-    text-align: center;
-    margin-top: 15px;
-}
-
-.reset-password-link a {
-    color: #0066b3;
-    text-decoration: none;
-    font-size: 14px;
-}
-
-.reset-password-link a:hover {
-    text-decoration: underline;
-}
-
-/* Notificação push */
-.push-permission {
-    background: linear-gradient(135deg, #e6f0ff 0%, #d4e4ff 100%);
-    border-radius: 15px;
-    padding: 15px;
-    margin: 15px 0;
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    border-left: 4px solid #0066b3;
-}
-
-.push-permission i {
-    font-size: 24px;
-    color: #0066b3;
-}
-
-.push-permission button {
-    background: #0066b3;
-    color: white;
-    border: none;
-    padding: 8px 15px;
-    border-radius: 20px;
-    cursor: pointer;
-    font-size: 12px;
-    font-weight: 600;
-}
-
-.push-permission button:hover {
-    background: #003b7d;
-}
-/* Estilos para financeiro */
-.resumo-financeiro {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 15px;
-    margin-bottom: 20px;
-}
-
-.card-resumo {
-    background: white;
-    border-radius: 15px;
-    padding: 20px;
-    box-shadow: 0 5px 20px rgba(0,59,125,0.08);
-}
-
-.card-resumo h4 {
-    color: #666;
-    font-size: 13px;
-    margin-bottom: 10px;
-}
-
-.card-resumo .valor {
-    font-size: 24px;
-    font-weight: 700;
-    color: #003b7d;
-}
-
-/* Configurações de email */
-.config-email {
-    background: #f8faff;
-    border-radius: 10px;
-    padding: 20px;
-    margin: 20px 0;
-}
-
-.config-email h4 {
-    color: #003b7d;
-    margin-bottom: 15px;
-}
-
-/* VAPID Keys */
-.vapid-keys {
-    background: #f0f4f8;
-    border-radius: 8px;
-    padding: 15px;
-    font-family: monospace;
-    font-size: 12px;
-    word-break: break-all;
-    margin: 10px 0;
 }

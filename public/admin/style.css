@@ -2,12 +2,11 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Segoe UI', sans-serif;
 }
 
 body {
-    background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
-    min-height: 100vh;
+    background: #f5f7fa;
 }
 
 .login-container {
@@ -16,7 +15,6 @@ body {
     align-items: center;
     justify-content: center;
     background: linear-gradient(135deg, #003b7d 0%, #0066b3 100%);
-    padding: 20px;
 }
 
 .login-card {
@@ -26,56 +24,24 @@ body {
     width: 100%;
     max-width: 400px;
     box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-    animation: slideUp 0.5s ease;
-}
-
-@keyframes slideUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
 }
 
 .login-card h1 {
     color: #003b7d;
-    margin-bottom: 10px;
-    font-size: 32px;
-}
-
-.login-card .subtitle {
-    color: #666;
     margin-bottom: 30px;
-    font-size: 14px;
+    text-align: center;
 }
 
 .input-group {
     margin-bottom: 20px;
 }
 
-.input-group label {
-    display: block;
-    margin-bottom: 8px;
-    color: #003b7d;
-    font-weight: 500;
-}
-
 .input-group input {
     width: 100%;
     padding: 15px;
     border: 2px solid #e0e8f0;
-    border-radius: 15px;
+    border-radius: 10px;
     font-size: 16px;
-    transition: all 0.3s;
-}
-
-.input-group input:focus {
-    outline: none;
-    border-color: #0066b3;
-    box-shadow: 0 0 0 3px rgba(0,102,179,0.1);
 }
 
 .login-btn {
@@ -84,39 +50,14 @@ body {
     background: linear-gradient(135deg, #003b7d 0%, #0066b3 100%);
     color: white;
     border: none;
-    border-radius: 15px;
+    border-radius: 10px;
     font-size: 16px;
-    font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s;
 }
 
 .login-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 10px 20px rgba(0,59,125,0.3);
-}
-
-.mensagem {
-    margin-top: 20px;
-    padding: 10px;
-    border-radius: 10px;
-    text-align: center;
-    font-size: 14px;
-    display: none;
-}
-
-.mensagem.erro {
-    display: block;
-    background: #fee;
-    color: #c33;
-    border: 1px solid #fcc;
-}
-
-.mensagem.sucesso {
-    display: block;
-    background: #e8f5e9;
-    color: #2e7d32;
-    border: 1px solid #a5d6a7;
+    box-shadow: 0 5px 15px rgba(0,59,125,0.3);
 }
 
 .painel-container {
@@ -125,28 +66,17 @@ body {
 }
 
 .sidebar {
-    width: 280px;
+    width: 250px;
     background: linear-gradient(135deg, #003b7d 0%, #0066b3 100%);
     color: white;
     display: flex;
     flex-direction: column;
-    box-shadow: 2px 0 10px rgba(0,0,0,0.1);
 }
 
 .sidebar-header {
     padding: 30px 20px;
     text-align: center;
     border-bottom: 1px solid rgba(255,255,255,0.1);
-}
-
-.sidebar-header h2 {
-    font-size: 24px;
-    margin-bottom: 5px;
-}
-
-.sidebar-header p {
-    font-size: 12px;
-    opacity: 0.8;
 }
 
 .sidebar-menu {
@@ -158,9 +88,7 @@ body {
     display: flex;
     align-items: center;
     padding: 15px 25px;
-    margin: 5px 10px;
     color: rgba(255,255,255,0.8);
-    border-radius: 10px;
     cursor: pointer;
     transition: all 0.3s;
 }
@@ -168,7 +96,6 @@ body {
 .menu-item i {
     width: 25px;
     margin-right: 10px;
-    font-size: 18px;
 }
 
 .menu-item:hover {
@@ -179,44 +106,11 @@ body {
 .menu-item.active {
     background: white;
     color: #003b7d;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
 }
 
 .sidebar-footer {
     padding: 20px;
     border-top: 1px solid rgba(255,255,255,0.1);
-}
-
-.user-info {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 15px;
-}
-
-.user-avatar {
-    width: 40px;
-    height: 40px;
-    background: rgba(255,255,255,0.2);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-}
-
-.user-details {
-    flex: 1;
-}
-
-.user-name {
-    font-weight: 600;
-    font-size: 14px;
-}
-
-.user-role {
-    font-size: 12px;
-    opacity: 0.7;
 }
 
 .logout-btn {
@@ -227,15 +121,6 @@ body {
     border-radius: 8px;
     color: white;
     cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    transition: all 0.3s;
-}
-
-.logout-btn:hover {
-    background: rgba(255,255,255,0.2);
 }
 
 .main-content {
@@ -254,7 +139,6 @@ body {
 
 .content-header h1 {
     color: #003b7d;
-    font-size: 28px;
 }
 
 .btn-novo {
@@ -263,18 +147,10 @@ body {
     border: none;
     padding: 12px 25px;
     border-radius: 10px;
-    font-size: 14px;
-    font-weight: 600;
     cursor: pointer;
     display: flex;
     align-items: center;
     gap: 8px;
-    transition: all 0.3s;
-}
-
-.btn-novo:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(0,59,125,0.3);
 }
 
 .cards-grid {
@@ -306,12 +182,6 @@ body {
     font-size: 28px;
 }
 
-.card-info h3 {
-    color: #666;
-    font-size: 14px;
-    margin-bottom: 5px;
-}
-
 .card-number {
     font-size: 32px;
     font-weight: 700;
@@ -335,19 +205,12 @@ th {
     text-align: left;
     padding: 15px;
     color: #666;
-    font-weight: 600;
-    font-size: 14px;
     border-bottom: 2px solid #e6edf5;
 }
 
 td {
     padding: 15px;
-    color: #333;
     border-bottom: 1px solid #e6edf5;
-}
-
-tr:hover {
-    background: #f8faff;
 }
 
 .btn-acao {
@@ -356,8 +219,6 @@ tr:hover {
     border-radius: 6px;
     cursor: pointer;
     margin: 0 3px;
-    font-size: 12px;
-    transition: all 0.3s;
 }
 
 .btn-editar {
@@ -368,14 +229,6 @@ tr:hover {
 .btn-excluir {
     background: #ffebee;
     color: #c62828;
-}
-
-.btn-editar:hover {
-    background: #bbdefb;
-}
-
-.btn-excluir:hover {
-    background: #ffcdd2;
 }
 
 .modal {
@@ -403,24 +256,11 @@ tr:hover {
     max-width: 600px;
     max-height: 90vh;
     overflow-y: auto;
-    animation: modalSlide 0.3s ease;
-}
-
-@keyframes modalSlide {
-    from {
-        opacity: 0;
-        transform: translateY(-50px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
 }
 
 .modal-content h2 {
     color: #003b7d;
     margin-bottom: 30px;
-    font-size: 24px;
 }
 
 .modal-content input,
@@ -431,14 +271,6 @@ tr:hover {
     margin-bottom: 20px;
     border: 2px solid #e0e8f0;
     border-radius: 10px;
-    font-size: 15px;
-}
-
-.modal-content input:focus,
-.modal-content select:focus,
-.modal-content textarea:focus {
-    outline: none;
-    border-color: #0066b3;
 }
 
 .modal-buttons {
@@ -454,8 +286,6 @@ tr:hover {
     color: white;
     border: none;
     border-radius: 10px;
-    font-size: 16px;
-    font-weight: 600;
     cursor: pointer;
 }
 
@@ -466,7 +296,6 @@ tr:hover {
     color: #666;
     border: none;
     border-radius: 10px;
-    font-size: 16px;
     cursor: pointer;
 }
 
@@ -476,16 +305,8 @@ tr:hover {
     margin-bottom: 20px;
 }
 
-.filtro-select {
-    padding: 10px;
-    border: 2px solid #e0e8f0;
-    border-radius: 10px;
-    font-size: 14px;
-    background: white;
-}
-
+.filtro-select,
 .filtro-input {
-    flex: 1;
     padding: 10px;
     border: 2px solid #e0e8f0;
     border-radius: 10px;
@@ -500,15 +321,4 @@ tr:hover {
 .status-inativo {
     color: #dc3545;
     font-weight: 600;
-}
-
-.loading {
-    text-align: center;
-    padding: 40px;
-    color: #003b7d;
-}
-
-.loading i {
-    font-size: 40px;
-    margin-bottom: 15px;
 }

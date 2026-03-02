@@ -12,11 +12,9 @@ const AppMembro = {
         aniversariantes: [],
         eventos: []
     },
-    pushSubscription: null,
 
     init() {
         this.verificarLogin();
-        this.configurarPush();
     },
 
     verificarLogin() {
@@ -29,64 +27,8 @@ const AppMembro = {
         }
     },
 
-    configurarPush() {
-        if ('serviceWorker' in navigator && 'PushManager' in window) {
-            navigator.serviceWorker.register('/sw.js')
-                .then(reg => {
-                    console.log('✅ Service Worker registrado');
-                    return reg.pushManager.getSubscription();
-                })
-                .then(sub => {
-                    this.pushSubscription = sub;
-                })
-                .catch(err => console.log('Erro no push:', err));
-        }
-    },
-
-    async solicitarPermissaoPush() {
-        try {
-            const registration = await navigator.serviceWorker.ready;
-            const sub = await registration.pushManager.subscribe({
-                userVisibleOnly: true,
-                applicationServerKey: this.urlBase64ToUint8Array(this.vapidPublicKey)
-            });
-            
-            // Enviar subscription para o servidor
-            await fetch('/api/push/subscribe', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    subscription: sub,
-                    membroId: this.membro.id
-                })
-            });
-            
-            this.pushSubscription = sub;
-            alert('✅ Notificações ativadas!');
-        } catch (error) {
-            console.error('Erro ao ativar push:', error);
-            alert('❌ Erro ao ativar notificações');
-        }
-    },
-
-    urlBase64ToUint8Array(base64String) {
-        const padding = '='.repeat((4 - base64String.length % 4) % 4);
-        const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
-        const rawData = window.atob(base64);
-        const outputArray = new Uint8Array(rawData.length);
-        for (let i = 0; i < rawData.length; ++i) {
-            outputArray[i] = rawData.charCodeAt(i);
-        }
-        return outputArray;
-    },
-
     async login(email, senha) {
-        const btnLogin = document.querySelector('.login-btn');
-        
         try {
-            btnLogin.disabled = true;
-            btnLogin.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Entrando...';
-
             const response = await fetch('/api/membros/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -102,13 +44,9 @@ const AppMembro = {
                 setTimeout(() => this.carregarDados(), 1000);
             } else {
                 this.mostrarMensagem('erro', data.erro || 'Erro no login');
-                btnLogin.disabled = false;
-                btnLogin.innerHTML = 'Entrar';
             }
         } catch (error) {
             this.mostrarMensagem('erro', 'Erro ao conectar');
-            btnLogin.disabled = false;
-            btnLogin.innerHTML = 'Entrar';
         }
     },
 
@@ -169,12 +107,12 @@ const AppMembro = {
                     <div class="subtitle">Comunidade Evangélica Ágape</div>
                     
                     <div class="input-group">
-                        <label><i class="fas fa-envelope"></i> E-mail</label>
+                        <label>E-mail</label>
                         <input type="email" id="email" placeholder="seu@email.com" value="joao@email.com">
                     </div>
                     
                     <div class="input-group">
-                        <label><i class="fas fa-lock"></i> Senha</label>
+                        <label>Senha</label>
                         <input type="password" id="senha" placeholder="••••••" value="123456">
                     </div>
                     
@@ -183,60 +121,10 @@ const AppMembro = {
                         document.getElementById('senha').value
                     )">Entrar</button>
                     
-                    <div class="reset-password-link">
-                        <a href="#" onclick="AppMembro.abrirModalRecuperarSenha()">Esqueceu sua senha?</a>
-                    </div>
-                    
                     <div class="mensagem" id="mensagem"></div>
                 </div>
             </div>
         `;
-    },
-
-    abrirModalRecuperarSenha() {
-        const modal = document.createElement('div');
-        modal.className = 'modal active';
-        modal.id = 'modal-recuperar';
-        modal.innerHTML = `
-            <div class="modal-content">
-                <h2>Recuperar Senha</h2>
-                <p style="margin-bottom: 20px; color: #666;">Digite seu e-mail para receber o link de recuperação.</p>
-                <input type="email" id="email-recuperar" placeholder="Seu e-mail" style="width: 100%; padding: 12px; margin-bottom: 20px; border: 2px solid #e0e8f0; border-radius: 10px;">
-                <div class="modal-buttons">
-                    <button class="btn-save" onclick="AppMembro.solicitarRecuperacao()">Enviar</button>
-                    <button class="btn-cancel" onclick="AppMembro.fecharModal()">Cancelar</button>
-                </div>
-            </div>
-        `;
-        document.body.appendChild(modal);
-    },
-
-    async solicitarRecuperacao() {
-        const email = document.getElementById('email-recuperar').value;
-        
-        try {
-            const response = await fetch('/api/recuperar-senha', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email })
-            });
-            
-            const data = await response.json();
-            
-            if (response.ok) {
-                alert('📧 Email de recuperação enviado! Verifique sua caixa de entrada.');
-                this.fecharModal();
-            } else {
-                alert(data.erro || 'Erro ao enviar recuperação');
-            }
-        } catch (error) {
-            alert('Erro ao conectar');
-        }
-    },
-
-    fecharModal() {
-        const modal = document.getElementById('modal-recuperar');
-        if (modal) modal.remove();
     },
 
     renderizarLoading() {
@@ -253,17 +141,11 @@ const AppMembro = {
     renderizarInterface() {
         document.getElementById('app').innerHTML = `
             <div class="app-header">
-                <h1>
-                    ⛪ CEA Betel Bertioga
-                    <span>${this.membro.nome.split(' ')[0]}</span>
-                </h1>
-                <div class="user-greeting">
-                    <i class="fas fa-map-marker-alt"></i> Comunidade Evangélica Ágape
-                </div>
+                <h1>⛪ CEA Betel Bertioga</h1>
+                <div class="user-greeting">Olá, ${this.membro.nome.split(' ')[0]}!</div>
             </div>
 
             <div class="app-content" id="content">
-                ${!this.pushSubscription ? this.renderizarPushPermission() : ''}
                 ${this.renderizarTelaAtual()}
             </div>
 
@@ -288,19 +170,6 @@ const AppMembro = {
                     <i class="fas fa-calendar-check"></i>
                     <span>Agenda</span>
                 </div>
-            </div>
-        `;
-    },
-
-    renderizarPushPermission() {
-        return `
-            <div class="push-permission">
-                <i class="fas fa-bell"></i>
-                <div style="flex: 1;">
-                    <strong>Ative as notificações!</strong>
-                    <p style="font-size: 12px;">Receba avisos importantes em tempo real</p>
-                </div>
-                <button onclick="AppMembro.solicitarPermissaoPush()">Ativar</button>
             </div>
         `;
     },
@@ -330,192 +199,96 @@ const AppMembro = {
         const home = this.dados.home || {};
         
         return `
-            <div class="card welcome-card">
-                <div class="card-header">
-                    <h3><i class="fas fa-hand-peace"></i> Olá, ${this.membro.nome.split(' ')[0]}!</h3>
-                </div>
-                <p>Seja bem-vindo(a) à nossa comunidade. 🙏</p>
-            </div>
-
             <div class="card">
-                <div class="card-header">
-                    <h3><i class="fas fa-church"></i> Próximo Culto</h3>
-                </div>
+                <h3>📅 Próximo Culto</h3>
                 <div class="culto-info">
                     <span class="culto-dia">Domingo</span>
                     <span class="culto-horario">${home.proximoCulto || '19:00'}</span>
                 </div>
                 
                 <div class="escala-status">
-                    <i class="fas ${home.estaEscalado ? 'fa-check-circle status-sim' : 'fa-times-circle status-nao'}" style="font-size: 30px;"></i>
+                    <i class="fas ${home.estaEscalado ? 'fa-check-circle status-sim' : 'fa-times-circle status-nao'}" style="font-size: 24px;"></i>
                     <div>
-                        <div style="font-weight: 600; margin-bottom: 3px;">
-                            Você está escalado neste culto?
-                        </div>
-                        <div class="${home.estaEscalado ? 'status-sim' : 'status-nao'}" style="font-weight: 600;">
-                            ${home.estaEscalado ? 'SIM! 🎉' : 'Não 😊'}
-                        </div>
+                        <strong>Você está escalado?</strong><br>
+                        <span class="${home.estaEscalado ? 'status-sim' : 'status-nao'}">
+                            ${home.estaEscalado ? 'SIM! 🎉' : 'Não'}
+                        </span>
                     </div>
                 </div>
             </div>
 
             <div class="card">
-                <div class="card-header">
-                    <h3><i class="fas fa-exclamation-triangle" style="color: #dc3545;"></i> Avisos Importantes</h3>
-                </div>
-                ${home.avisosImportantes?.length > 0 ? home.avisosImportantes.map(aviso => `
+                <h3>🔔 Avisos Importantes</h3>
+                ${home.avisosImportantes?.map(aviso => `
                     <div class="aviso-item">
-                        <div class="aviso-titulo">${aviso.titulo}</div>
-                        <div class="aviso-mensagem">${aviso.mensagem}</div>
+                        <strong>${aviso.titulo}</strong>
+                        <p>${aviso.mensagem}</p>
                     </div>
-                `).join('') : `
-                    <div class="empty-state">
-                        <i class="fas fa-check-circle"></i>
-                        <p>Nenhum aviso importante</p>
-                    </div>
-                `}
+                `).join('') || '<p>Nenhum aviso</p>'}
             </div>
 
-            <div style="margin: 20px 0; display: flex; gap: 10px;">
-                <button class="login-btn" onclick="AppMembro.mudarTela('escala')" style="padding: 10px;">
-                    <i class="fas fa-calendar-alt"></i> Minha Escala
-                </button>
-                <button class="login-btn" onclick="AppMembro.logout()" style="background: #6c757d; padding: 10px;">
-                    <i class="fas fa-sign-out-alt"></i> Sair
-                </button>
-            </div>
+            <button class="login-btn" onclick="AppMembro.logout()" style="background: #6c757d;">Sair</button>
         `;
     },
 
     renderizarEscala() {
-        if (this.dados.escalas.length === 0) {
-            return `
-                <div class="empty-state">
-                    <i class="fas fa-calendar-times"></i>
-                    <p>Você não está escalado em nenhum culto ainda.</p>
-                </div>
-            `;
+        if (!this.dados.escalas.length) {
+            return '<div class="empty-state"><i class="fas fa-calendar-times"></i><p>Sem escalas</p></div>';
         }
 
         return this.dados.escalas.map(escala => `
             <div class="escala-card">
-                <div class="escala-data">
-                    <i class="fas fa-calendar-day"></i> ${new Date(escala.data).toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}
-                </div>
+                <div class="escala-data">${new Date(escala.data).toLocaleDateString('pt-BR')}</div>
                 <div class="escala-detalhes">
                     <span><i class="fas fa-clock"></i> ${escala.horario}</span>
                     <span class="escala-funcao">${escala.funcao}</span>
                 </div>
-                ${escala.membro2_nome ? `
-                    <div style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed #e6edf5; color: #666; font-size: 13px;">
-                        <i class="fas fa-users"></i> Recepção: ${escala.membro1_nome} e ${escala.membro2_nome}
-                    </div>
-                ` : ''}
             </div>
         `).join('');
     },
 
     renderizarAvisos() {
-        if (this.dados.avisos.length === 0) {
-            return `
-                <div class="empty-state">
-                    <i class="fas fa-bullhorn"></i>
-                    <p>Nenhum aviso no momento.</p>
-                </div>
-            `;
-        }
-
         return this.dados.avisos.map(aviso => `
-            <div class="card aviso-${aviso.importancia}">
-                <span class="importancia-badge badge-${aviso.importancia}">
-                    ${aviso.importancia === 'alta' ? '🔴 IMPORTANTE' : 
-                      aviso.importancia === 'media' ? '🟡 AVISO' : '🟢 INFORMATIVO'}
-                </span>
-                <h3 style="color: #003b7d; margin-bottom: 10px;">${aviso.titulo}</h3>
-                <p style="color: #666; line-height: 1.6;">${aviso.mensagem}</p>
-                <div style="margin-top: 15px; color: #999; font-size: 12px;">
-                    <i class="fas fa-calendar-alt"></i> ${new Date(aviso.data).toLocaleDateString('pt-BR')}
-                </div>
+            <div class="card">
+                <h3>${aviso.titulo}</h3>
+                <p>${aviso.mensagem}</p>
+                <small>${new Date(aviso.data).toLocaleDateString('pt-BR')}</small>
             </div>
         `).join('');
     },
 
     renderizarAniversariantes() {
-        if (this.dados.aniversariantes.length === 0) {
-            return `
-                <div class="empty-state">
-                    <i class="fas fa-birthday-cake"></i>
-                    <p>Nenhum aniversariante este mês.</p>
-                </div>
-            `;
-        }
-
         return `
             <div class="card">
-                <div class="card-header">
-                    <h3><i class="fas fa-birthday-cake"></i> Aniversariantes de ${new Date().toLocaleDateString('pt-BR', { month: 'long' })}</h3>
-                </div>
-                ${this.dados.aniversariantes.map(ani => {
-                    const dia = new Date(ani.data_nascimento).getDate();
-                    return `
-                        <div class="aniversariante-item">
-                            <div class="aniversariante-avatar">${ani.nome.charAt(0)}</div>
-                            <div class="aniversariante-info">
-                                <div class="aniversariante-nome">${ani.nome}</div>
-                                <div class="aniversariante-dia">
-                                    <i class="fas fa-calendar-day"></i> Dia ${dia}
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                }).join('')}
+                <h3>🎂 Aniversariantes</h3>
+                ${this.dados.aniversariantes.map(ani => `
+                    <div style="padding: 10px 0; border-bottom: 1px solid #eee;">
+                        <strong>${ani.nome}</strong><br>
+                        <small>${new Date(ani.data_nascimento).toLocaleDateString('pt-BR', { day: 'numeric', month: 'long' })}</small>
+                    </div>
+                `).join('')}
             </div>
         `;
     },
 
     renderizarEventos() {
-        if (this.dados.eventos.length === 0) {
-            return `
-                <div class="empty-state">
-                    <i class="fas fa-calendar-times"></i>
-                    <p>Nenhum evento este mês.</p>
-                </div>
-            `;
-        }
-
-        return this.dados.eventos.map(evento => {
-            const data = new Date(evento.data);
-            return `
-                <div class="evento-card">
-                    <div class="evento-data">
-                        <div class="evento-dia">${data.getDate()}</div>
-                        <div class="evento-mes">${data.toLocaleDateString('pt-BR', { month: 'short' })}</div>
-                    </div>
-                    <div class="evento-info">
-                        <div class="evento-titulo">${evento.titulo}</div>
-                        <div class="evento-horario">
-                            <i class="fas fa-clock"></i> ${evento.horario}
-                        </div>
-                        <div class="evento-descricao">${evento.descricao}</div>
-                    </div>
-                </div>
-            `;
-        }).join('');
+        return this.dados.eventos.map(evento => `
+            <div class="card">
+                <h3>${evento.titulo}</h3>
+                <p><i class="fas fa-calendar"></i> ${new Date(evento.data).toLocaleDateString('pt-BR')} às ${evento.horario}</p>
+                <p>${evento.descricao}</p>
+            </div>
+        `).join('');
     },
 
     mostrarMensagem(tipo, texto) {
-        const mensagem = document.getElementById('mensagem');
-        if (!mensagem) return;
-        
-        mensagem.className = `mensagem ${tipo}`;
-        mensagem.textContent = texto;
-        
-        setTimeout(() => {
-            mensagem.className = 'mensagem';
-        }, 3000);
+        const msg = document.getElementById('mensagem');
+        if (!msg) return;
+        msg.className = `mensagem ${tipo}`;
+        msg.textContent = texto;
+        setTimeout(() => msg.className = 'mensagem', 3000);
     }
 };
 
-// Inicializar
-AppMembro.init();
 window.AppMembro = AppMembro;
+AppMembro.init();
