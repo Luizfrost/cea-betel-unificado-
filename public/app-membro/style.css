@@ -489,3 +489,100 @@ body {
     color: #0066b3;
     opacity: 0.5;
 }
+/* Estilos para recuperação de senha */
+.reset-password-link {
+    text-align: center;
+    margin-top: 15px;
+}
+
+.reset-password-link a {
+    color: #0066b3;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.reset-password-link a:hover {
+    text-decoration: underline;
+}
+
+/* Notificação push */
+.push-permission {
+    background: linear-gradient(135deg, #e6f0ff 0%, #d4e4ff 100%);
+    border-radius: 15px;
+    padding: 15px;
+    margin: 15px 0;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    border-left: 4px solid #0066b3;
+}
+
+.push-permission i {
+    font-size: 24px;
+    color: #0066b3;
+}
+
+.push-permission button {
+    background: #0066b3;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.push-permission button:hover {
+    background: #003b7d;
+}
+/* Estilos para financeiro */
+.resumo-financeiro {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.card-resumo {
+    background: white;
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 5px 20px rgba(0,59,125,0.08);
+}
+
+.card-resumo h4 {
+    color: #666;
+    font-size: 13px;
+    margin-bottom: 10px;
+}
+
+.card-resumo .valor {
+    font-size: 24px;
+    font-weight: 700;
+    color: #003b7d;
+}
+
+/* Configurações de email */
+.config-email {
+    background: #f8faff;
+    border-radius: 10px;
+    padding: 20px;
+    margin: 20px 0;
+}
+
+.config-email h4 {
+    color: #003b7d;
+    margin-bottom: 15px;
+}
+
+/* VAPID Keys */
+.vapid-keys {
+    background: #f0f4f8;
+    border-radius: 8px;
+    padding: 15px;
+    font-family: monospace;
+    font-size: 12px;
+    word-break: break-all;
+    margin: 10px 0;
+}

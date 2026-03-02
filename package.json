@@ -1,19 +1,20 @@
 {
-  "name": "cea-betel-unificado",
-  "version": "2.0.0",
-  "description": "Sistema Completo CEA Betel - App Membros + Painel Admin",
+  "name": "cea-betel-bertioga",
+  "version": "3.0.0",
+  "description": "Sistema Completo CEA Betel Bertioga - App Membros + Painel Admin",
   "type": "module",
   "scripts": {
     "start": "node backend/server.js",
-    "dev": "node backend/server.js",
-    "membros": "start http://localhost:3000/app-membro",
-    "admin": "start http://localhost:3000/admin"
+    "dev": "node backend/server.js"
   },
   "dependencies": {
     "express": "^4.18.2",
     "sqlite3": "^5.1.6",
     "cors": "^2.8.5",
     "bcryptjs": "^2.4.3",
-    "jsonwebtoken": "^9.0.2"
+    "jsonwebtoken": "^9.0.2",
+    "nodemailer": "^6.9.7",
+    "crypto": "^1.0.1",
+    "web-push": "^3.6.7"
   }
 }

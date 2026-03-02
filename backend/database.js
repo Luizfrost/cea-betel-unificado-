@@ -16,21 +16,23 @@ class Database {
         // Verificar ambiente
         const isProduction = process.env.NODE_ENV === 'production';
         
-        // Caminho do banco de dados
+        // CAMINHO CORRIGIDO - GARANTA QUE ESTÁ ASSIM
         if (isProduction) {
-            // Render persistent disk
+            // Render persistent disk - caminho EXATO
             this.dbPath = '/data/cea-betel.db';
             console.log('📦 Ambiente: Produção (Render)');
+            console.log(`📂 Caminho do banco: ${this.dbPath}`);
         } else {
             // Local development
             this.dbPath = path.join(__dirname, 'cea-betel.db');
             console.log('💻 Ambiente: Desenvolvimento Local');
+            console.log(`📂 Caminho do banco: ${this.dbPath}`);
         }
-        
-        console.log(`📂 Banco de dados: ${this.dbPath}`);
         
         // GARANTIR que a pasta existe (CRÍTICO para produção)
         const dbDir = path.dirname(this.dbPath);
+        console.log(`📁 Diretório do banco: ${dbDir}`);
+        
         if (!fs.existsSync(dbDir)) {
             try {
                 fs.mkdirSync(dbDir, { recursive: true });
@@ -49,6 +51,7 @@ class Database {
             console.log('✅ Permissão de escrita OK');
         } catch (error) {
             console.error('❌ Sem permissão de escrita:', error);
+            console.error('❌ Verifique se o disco persistente está montado em /data');
             throw error;
         }
         
@@ -76,6 +79,8 @@ class Database {
                 telefone TEXT,
                 funcao TEXT,
                 permissoes TEXT DEFAULT '{"verEscalas":true,"verAvisos":true,"verEventos":true,"verAniversariantes":true}',
+                reset_token TEXT,
+                reset_expires TEXT,
                 ativo INTEGER DEFAULT 1,
                 data_cadastro TEXT
             )`);
@@ -101,7 +106,20 @@ class Database {
                 importancia TEXT CHECK(importancia IN ('alta', 'media', 'baixa')),
                 data TEXT,
                 autor TEXT,
-                fixado INTEGER DEFAULT 0
+                fixado INTEGER DEFAULT 0,
+                notificado INTEGER DEFAULT 0
+            )`);
+
+            // Tabela de dízimos e ofertas
+            this.db.run(`CREATE TABLE IF NOT EXISTS financeiro (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                tipo TEXT CHECK(tipo IN ('dizimo', 'oferta', 'outros')),
+                membro_id INTEGER,
+                valor REAL,
+                data TEXT,
+                descricao TEXT,
+                comprovante TEXT,
+                FOREIGN KEY (membro_id) REFERENCES membros(id)
             )`);
 
             // Tabela de eventos
@@ -139,6 +157,15 @@ class Database {
                 dados TEXT,
                 data TEXT,
                 hora TEXT
+            )`);
+
+            // Tabela de inscrições push
+            this.db.run(`CREATE TABLE IF NOT EXISTS push_subscriptions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                membro_id INTEGER,
+                subscription TEXT,
+                data TEXT,
+                FOREIGN KEY (membro_id) REFERENCES membros(id)
             )`);
 
             // Criar admin padrão
@@ -179,7 +206,8 @@ class Database {
         const membrosExemplo = [
             ['João Silva', 'joao@email.com', bcrypt.hashSync('123456', salt), '1985-03-15', '(11) 99999-9999', 'Recepcionista', permissoes],
             ['Maria Oliveira', 'maria@email.com', bcrypt.hashSync('123456', salt), '1990-07-22', '(11) 98888-8888', 'Louvor', permissoes],
-            ['Pedro Santos', 'pedro@email.com', bcrypt.hashSync('123456', salt), '1982-11-30', '(11) 97777-7777', 'Palavra', permissoes]
+            ['Pedro Santos', 'pedro@email.com', bcrypt.hashSync('123456', salt), '1982-11-30', '(11) 97777-7777', 'Palavra', permissoes],
+            ['Ana Costa', 'ana@email.com', bcrypt.hashSync('123456', salt), '1988-12-05', '(11) 96666-6666', 'Dízimo', permissoes]
         ];
 
         membrosExemplo.forEach(([nome, email, senha, data_nascimento, telefone, funcao, permissoes]) => {
@@ -220,6 +248,7 @@ class Database {
                 const avisos = [
                     ['Culto de Celebração', 'Neste domingo teremos um culto especial!', 'alta', new Date().toISOString().split('T')[0], 'Secretaria'],
                     ['Reunião de Oração', 'Toda quarta-feira às 20h.', 'media', new Date().toISOString().split('T')[0], 'Pastor'],
+                    ['Campanha do Agasalho', 'Participe trazendo sua doação.', 'alta', new Date().toISOString().split('T')[0], 'Ação Social']
                 ];
 
                 avisos.forEach(([titulo, mensagem, importancia, data, autor]) => {
@@ -237,6 +266,7 @@ class Database {
                 const eventos = [
                     ['Culto de Domingo', '2025-03-09', '19:00', 'Culto de celebração', 'Templo Principal'],
                     ['Escola Bíblica', '2025-03-12', '20:00', 'Estudo de Romanos', 'Sala 2'],
+                    ['Culto de Jovens', '2025-03-15', '19:30', 'Louvor e adoração', 'Auditório']
                 ];
 
                 eventos.forEach(([titulo, data, horario, descricao, local]) => {
@@ -248,11 +278,37 @@ class Database {
             }
         });
 
+        // Financeiro de exemplo
+        this.db.get("SELECT * FROM financeiro", (err, row) => {
+            if (!row) {
+                const financeiro = [
+                    ['dizimo', 1, 150.00, '2025-03-01', 'Dízimo mensal', null],
+                    ['oferta', 2, 75.50, '2025-03-01', 'Oferta de gratidão', null],
+                    ['dizimo', 3, 200.00, '2025-03-02', 'Dízimo', null],
+                    ['oferta', 1, 100.00, '2025-03-02', 'Oferta missionária', null],
+                    ['outros', null, 500.00, '2025-03-03', 'Doação anônima', null]
+                ];
+
+                financeiro.forEach(([tipo, membro_id, valor, data, descricao, comprovante]) => {
+                    this.db.run(
+                        "INSERT INTO financeiro (tipo, membro_id, valor, data, descricao, comprovante) VALUES (?, ?, ?, ?, ?, ?)",
+                        [tipo, membro_id, valor, data, descricao, comprovante]
+                    );
+                });
+            }
+        });
+
         // Configurações
         const configuracoes = [
             ['proximo_culto', 'Domingo, 19:00'],
             ['nome_igreja', 'CEA Betel Bertioga'],
-            ['pix', 'chave-pix@ceabetel.com.br']
+            ['pix', 'chave-pix@ceabetel.com.br'],
+            ['email_smtp', 'smtp.gmail.com'],
+            ['email_port', '587'],
+            ['email_user', 'ceabetel@gmail.com'],
+            ['email_pass', ''],
+            ['vapid_public_key', ''],
+            ['vapid_private_key', '']
         ];
 
         configuracoes.forEach(([chave, valor]) => {

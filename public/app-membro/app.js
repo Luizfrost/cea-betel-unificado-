@@ -1,5 +1,5 @@
 // ============================================
-// CEA BETEL - APP DOS MEMBROS
+// CEA BETEL BERTIOGA - APP DOS MEMBROS
 // ============================================
 
 const AppMembro = {
@@ -12,9 +12,11 @@ const AppMembro = {
         aniversariantes: [],
         eventos: []
     },
+    pushSubscription: null,
 
     init() {
         this.verificarLogin();
+        this.configurarPush();
     },
 
     verificarLogin() {
@@ -25,6 +27,57 @@ const AppMembro = {
         } else {
             this.renderizarLogin();
         }
+    },
+
+    configurarPush() {
+        if ('serviceWorker' in navigator && 'PushManager' in window) {
+            navigator.serviceWorker.register('/sw.js')
+                .then(reg => {
+                    console.log('✅ Service Worker registrado');
+                    return reg.pushManager.getSubscription();
+                })
+                .then(sub => {
+                    this.pushSubscription = sub;
+                })
+                .catch(err => console.log('Erro no push:', err));
+        }
+    },
+
+    async solicitarPermissaoPush() {
+        try {
+            const registration = await navigator.serviceWorker.ready;
+            const sub = await registration.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: this.urlBase64ToUint8Array(this.vapidPublicKey)
+            });
+            
+            // Enviar subscription para o servidor
+            await fetch('/api/push/subscribe', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    subscription: sub,
+                    membroId: this.membro.id
+                })
+            });
+            
+            this.pushSubscription = sub;
+            alert('✅ Notificações ativadas!');
+        } catch (error) {
+            console.error('Erro ao ativar push:', error);
+            alert('❌ Erro ao ativar notificações');
+        }
+    },
+
+    urlBase64ToUint8Array(base64String) {
+        const padding = '='.repeat((4 - base64String.length % 4) % 4);
+        const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
+        const rawData = window.atob(base64);
+        const outputArray = new Uint8Array(rawData.length);
+        for (let i = 0; i < rawData.length; ++i) {
+            outputArray[i] = rawData.charCodeAt(i);
+        }
+        return outputArray;
     },
 
     async login(email, senha) {
@@ -112,8 +165,8 @@ const AppMembro = {
         document.getElementById('app').innerHTML = `
             <div class="login-container">
                 <div class="login-card">
-                    <h2>🌟 CEA Betel</h2>
-                    <div class="subtitle">Comunidade Evangélica Apostólica</div>
+                    <h2>⛪ CEA Betel Bertioga</h2>
+                    <div class="subtitle">Comunidade Evangélica Ágape</div>
                     
                     <div class="input-group">
                         <label><i class="fas fa-envelope"></i> E-mail</label>
@@ -130,10 +183,60 @@ const AppMembro = {
                         document.getElementById('senha').value
                     )">Entrar</button>
                     
+                    <div class="reset-password-link">
+                        <a href="#" onclick="AppMembro.abrirModalRecuperarSenha()">Esqueceu sua senha?</a>
+                    </div>
+                    
                     <div class="mensagem" id="mensagem"></div>
                 </div>
             </div>
         `;
+    },
+
+    abrirModalRecuperarSenha() {
+        const modal = document.createElement('div');
+        modal.className = 'modal active';
+        modal.id = 'modal-recuperar';
+        modal.innerHTML = `
+            <div class="modal-content">
+                <h2>Recuperar Senha</h2>
+                <p style="margin-bottom: 20px; color: #666;">Digite seu e-mail para receber o link de recuperação.</p>
+                <input type="email" id="email-recuperar" placeholder="Seu e-mail" style="width: 100%; padding: 12px; margin-bottom: 20px; border: 2px solid #e0e8f0; border-radius: 10px;">
+                <div class="modal-buttons">
+                    <button class="btn-save" onclick="AppMembro.solicitarRecuperacao()">Enviar</button>
+                    <button class="btn-cancel" onclick="AppMembro.fecharModal()">Cancelar</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    },
+
+    async solicitarRecuperacao() {
+        const email = document.getElementById('email-recuperar').value;
+        
+        try {
+            const response = await fetch('/api/recuperar-senha', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email })
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok) {
+                alert('📧 Email de recuperação enviado! Verifique sua caixa de entrada.');
+                this.fecharModal();
+            } else {
+                alert(data.erro || 'Erro ao enviar recuperação');
+            }
+        } catch (error) {
+            alert('Erro ao conectar');
+        }
+    },
+
+    fecharModal() {
+        const modal = document.getElementById('modal-recuperar');
+        if (modal) modal.remove();
     },
 
     renderizarLoading() {
@@ -151,7 +254,7 @@ const AppMembro = {
         document.getElementById('app').innerHTML = `
             <div class="app-header">
                 <h1>
-                    🌟 CEA Betel
+                    ⛪ CEA Betel Bertioga
                     <span>${this.membro.nome.split(' ')[0]}</span>
                 </h1>
                 <div class="user-greeting">
@@ -160,6 +263,7 @@ const AppMembro = {
             </div>
 
             <div class="app-content" id="content">
+                ${!this.pushSubscription ? this.renderizarPushPermission() : ''}
                 ${this.renderizarTelaAtual()}
             </div>
 
@@ -188,11 +292,23 @@ const AppMembro = {
         `;
     },
 
+    renderizarPushPermission() {
+        return `
+            <div class="push-permission">
+                <i class="fas fa-bell"></i>
+                <div style="flex: 1;">
+                    <strong>Ative as notificações!</strong>
+                    <p style="font-size: 12px;">Receba avisos importantes em tempo real</p>
+                </div>
+                <button onclick="AppMembro.solicitarPermissaoPush()">Ativar</button>
+            </div>
+        `;
+    },
+
     mudarTela(tela) {
         this.telaAtual = tela;
         document.getElementById('content').innerHTML = this.renderizarTelaAtual();
         
-        // Atualizar active do menu
         document.querySelectorAll('.nav-item').forEach(item => {
             item.classList.remove('active');
         });
