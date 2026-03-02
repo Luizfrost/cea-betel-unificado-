@@ -1,32 +1,29 @@
 // ============================================
-// DATABASE POSTGRESQL - NEON (GRATUITO)
+// DATABASE POSTGRESQL - NEON (FUNCIONANDO!)
 // ============================================
 
-import pg from 'pg';
+import pkg from 'pg';
 import bcrypt from 'bcryptjs';
 import dotenv from 'dotenv';
 
 dotenv.config();
 
-const { Pool } = pg;
+const { Pool } = pkg;
 
 class Database {
     constructor() {
-        // Verificar se está em produção ou desenvolvimento
-        this.isProduction = process.env.NODE_ENV === 'production';
-        
-        // Configuração do pool de conexões
+        // SUA STRING DE CONEXÃO JÁ ESTÁ NO .env
         this.pool = new Pool({
             connectionString: process.env.DATABASE_URL,
-            ssl: this.isProduction ? { rejectUnauthorized: false } : false,
-            max: 20, // máximo de conexões simultâneas
+            ssl: {
+                rejectUnauthorized: false // Obrigatório para Neon
+            },
+            max: 5, // máximo de conexões
             idleTimeoutMillis: 30000,
-            connectionTimeoutMillis: 2000,
+            connectionTimeoutMillis: 5000,
         });
 
-        console.log(`📦 Conectando ao PostgreSQL (${this.isProduction ? 'Produção' : 'Desenvolvimento'})`);
-        
-        // Testar conexão e criar tabelas
+        console.log('📦 Conectando ao Neon PostgreSQL...');
         this.inicializar();
     }
 
@@ -34,20 +31,22 @@ class Database {
         try {
             // Testar conexão
             const client = await this.pool.connect();
-            console.log('✅ Conectado ao PostgreSQL com sucesso!');
+            console.log('✅ Conectado ao Neon com sucesso!');
+            console.log('📍 Região: São Paulo (Brasil)');
             client.release();
 
-            // Criar tabelas
             await this.criarTabelas();
             
         } catch (error) {
-            console.error('❌ Erro ao conectar ao banco:', error.message);
+            console.error('❌ Erro ao conectar ao Neon:', error.message);
             console.error('❌ Verifique sua DATABASE_URL no arquivo .env');
             process.exit(1);
         }
     }
 
     async criarTabelas() {
+        console.log('📋 Criando tabelas...');
+
         // Tabela de membros
         await this.query(`
             CREATE TABLE IF NOT EXISTS membros (
@@ -118,14 +117,6 @@ class Database {
             )
         `);
 
-        // Tabela de configurações
-        await this.query(`
-            CREATE TABLE IF NOT EXISTS configuracoes (
-                chave VARCHAR(100) PRIMARY KEY,
-                valor TEXT
-            )
-        `);
-
         // Tabela de admin
         await this.query(`
             CREATE TABLE IF NOT EXISTS admin (
@@ -136,6 +127,14 @@ class Database {
                 email VARCHAR(255),
                 pix VARCHAR(255),
                 ultimo_acesso TIMESTAMP
+            )
+        `);
+
+        // Tabela de configurações
+        await this.query(`
+            CREATE TABLE IF NOT EXISTS configuracoes (
+                chave VARCHAR(100) PRIMARY KEY,
+                valor TEXT
             )
         `);
 
@@ -152,8 +151,7 @@ class Database {
         `);
 
         console.log('✅ Tabelas criadas/verificadas');
-
-        // Inserir dados iniciais
+        
         await this.inserirDadosIniciais();
     }
 
@@ -172,10 +170,10 @@ class Database {
             console.log('✅ Admin criado: admin / admin123');
         }
 
-        // Verificar se existem membros
-        const membros = await this.query("SELECT COUNT(*) FROM membros");
+        // Criar membros de exemplo
+        const membrosCount = await this.get("SELECT COUNT(*) as total FROM membros");
         
-        if (parseInt(membros[0].count) === 0) {
+        if (parseInt(membrosCount.total) === 0) {
             const salt = bcrypt.genSaltSync(10);
             const permissoes = JSON.stringify({
                 verEscalas: true,
@@ -217,7 +215,7 @@ class Database {
         }
     }
 
-    // Método para queries que retornam múltiplas linhas
+    // Métodos auxiliares (use estes em todo o seu código)
     async query(sql, params = []) {
         try {
             const result = await this.pool.query(sql, params);
@@ -228,7 +226,6 @@ class Database {
         }
     }
 
-    // Método para queries que retornam uma única linha
     async get(sql, params = []) {
         try {
             const result = await this.pool.query(sql, params);
@@ -239,7 +236,6 @@ class Database {
         }
     }
 
-    // Método para inserts/updates/deletes
     async run(sql, params = []) {
         try {
             const result = await this.pool.query(sql, params);
