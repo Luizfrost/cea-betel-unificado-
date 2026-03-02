@@ -41,7 +41,7 @@ const Admin = {
                     
                     <div class="input-group">
                         <label><i class="fas fa-lock"></i> Senha</label>
-                        <input type="password" id="senha" placeholder="••••••" value="admin123">
+                        <input type="password" id="senha" placeholder="••••••" value="henrique@10">
                     </div>
                     
                     <button class="login-btn" onclick="Admin.login()">
