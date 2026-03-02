@@ -598,3 +598,41 @@ app.listen(PORT, () => {
     console.log('👤 Membros: joao@email.com / 123456');
     console.log('='.repeat(50) + '\n');
 });
+
+// Login do membro (COM PERMISSÕES)
+app.post('/api/membros/login', async (req, res) => {
+    const { email, senha } = req.body;
+    
+    try {
+        const membro = await db.get(
+            "SELECT * FROM membros WHERE email = ? AND ativo = 1",
+            [email]
+        );
+        
+        if (!membro) {
+            return res.status(401).json({ erro: 'E-mail não encontrado' });
+        }
+        
+        const senhaValida = bcrypt.compareSync(senha, membro.senha);
+        if (!senhaValida) {
+            return res.status(401).json({ erro: 'Senha incorreta' });
+        }
+        
+        // Registrar login
+        await db.run(
+            "INSERT INTO logs (usuario, acao, data, hora) VALUES (?, ?, ?, ?)",
+            [membro.nome, 'Login no app', new Date().toISOString().split('T')[0], new Date().toTimeString().split(' ')[0]]
+        );
+        
+        res.json({
+            id: membro.id,
+            nome: membro.nome,
+            email: membro.email,
+            funcao: membro.funcao,
+            data_nascimento: membro.data_nascimento,
+            permissoes: JSON.parse(membro.permissoes)
+        });
+    } catch (error) {
+        res.status(500).json({ erro: 'Erro no servidor' });
+    }
+});

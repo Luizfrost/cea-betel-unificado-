@@ -1,23 +1,72 @@
+// ============================================
+// DATABASE CONFIGURATION - CEA BETEL BERTIOGA
+// ============================================
+
 import sqlite3 from 'sqlite3';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import bcrypt from 'bcryptjs';
+import fs from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 class Database {
     constructor() {
-       this.dbPath = process.env.NODE_ENV === 'production' 
-  ? '/data/cea-betel.db' 
-  : path.join(__dirname, 'cea-betel.db');
-        this.db = new sqlite3.Database(this.dbPath);
+        // Verificar ambiente
+        const isProduction = process.env.NODE_ENV === 'production';
+        
+        // Caminho do banco de dados
+        if (isProduction) {
+            // Render persistent disk
+            this.dbPath = '/data/cea-betel.db';
+            console.log('📦 Ambiente: Produção (Render)');
+        } else {
+            // Local development
+            this.dbPath = path.join(__dirname, 'cea-betel.db');
+            console.log('💻 Ambiente: Desenvolvimento Local');
+        }
+        
+        console.log(`📂 Banco de dados: ${this.dbPath}`);
+        
+        // GARANTIR que a pasta existe (CRÍTICO para produção)
+        const dbDir = path.dirname(this.dbPath);
+        if (!fs.existsSync(dbDir)) {
+            try {
+                fs.mkdirSync(dbDir, { recursive: true });
+                console.log(`📁 Pasta criada: ${dbDir}`);
+            } catch (error) {
+                console.error('❌ Erro ao criar pasta:', error);
+                throw error;
+            }
+        } else {
+            console.log(`✅ Pasta existe: ${dbDir}`);
+        }
+        
+        // Verificar permissões de escrita
+        try {
+            fs.accessSync(dbDir, fs.constants.W_OK);
+            console.log('✅ Permissão de escrita OK');
+        } catch (error) {
+            console.error('❌ Sem permissão de escrita:', error);
+            throw error;
+        }
+        
+        // Inicializar banco
+        this.db = new sqlite3.Database(this.dbPath, (err) => {
+            if (err) {
+                console.error('❌ Erro ao abrir banco:', err);
+                throw err;
+            }
+            console.log('✅ Banco de dados conectado!');
+        });
+        
         this.inicializar();
     }
 
     inicializar() {
         this.db.serialize(() => {
-            // Tabela de membros
+            // Tabela de membros (com permissões)
             this.db.run(`CREATE TABLE IF NOT EXISTS membros (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 nome TEXT,
@@ -26,6 +75,7 @@ class Database {
                 data_nascimento TEXT,
                 telefone TEXT,
                 funcao TEXT,
+                permissoes TEXT DEFAULT '{"verEscalas":true,"verAvisos":true,"verEventos":true,"verAniversariantes":true}',
                 ativo INTEGER DEFAULT 1,
                 data_cadastro TEXT
             )`);
@@ -76,7 +126,19 @@ class Database {
                 usuario TEXT UNIQUE,
                 senha TEXT,
                 nome TEXT,
+                email TEXT,
+                pix TEXT,
                 ultimo_acesso TEXT
+            )`);
+
+            // Tabela de logs
+            this.db.run(`CREATE TABLE IF NOT EXISTS logs (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                usuario TEXT,
+                acao TEXT,
+                dados TEXT,
+                data TEXT,
+                hora TEXT
             )`);
 
             // Criar admin padrão
@@ -97,8 +159,8 @@ class Database {
         this.db.get("SELECT * FROM admin WHERE usuario = 'admin'", (err, row) => {
             if (!row) {
                 this.db.run(
-                    "INSERT INTO admin (usuario, senha, nome) VALUES (?, ?, ?)",
-                    ['admin', hash, 'Administrador']
+                    "INSERT INTO admin (usuario, senha, nome, email) VALUES (?, ?, ?, ?)",
+                    ['admin', hash, 'Administrador', 'admin@ceabetel.com.br']
                 );
                 console.log('✅ Admin criado: admin / admin123');
             }
@@ -107,20 +169,25 @@ class Database {
 
     criarMembrosExemplo() {
         const salt = bcrypt.genSaltSync(10);
+        const permissoes = JSON.stringify({
+            verEscalas: true,
+            verAvisos: true,
+            verEventos: true,
+            verAniversariantes: true
+        });
+        
         const membrosExemplo = [
-            ['João Silva', 'joao@email.com', bcrypt.hashSync('123456', salt), '1985-03-15', '(11) 99999-9999', 'Recepcionista'],
-            ['Maria Oliveira', 'maria@email.com', bcrypt.hashSync('123456', salt), '1990-07-22', '(11) 98888-8888', 'Louvor'],
-            ['Pedro Santos', 'pedro@email.com', bcrypt.hashSync('123456', salt), '1982-11-30', '(11) 97777-7777', 'Palavra'],
-            ['Ana Souza', 'ana@email.com', bcrypt.hashSync('123456', salt), '1995-12-10', '(11) 96666-6666', 'Abertura'],
-            ['Carlos Lima', 'carlos@email.com', bcrypt.hashSync('123456', salt), '1988-05-20', '(11) 95555-5555', 'Dízimo']
+            ['João Silva', 'joao@email.com', bcrypt.hashSync('123456', salt), '1985-03-15', '(11) 99999-9999', 'Recepcionista', permissoes],
+            ['Maria Oliveira', 'maria@email.com', bcrypt.hashSync('123456', salt), '1990-07-22', '(11) 98888-8888', 'Louvor', permissoes],
+            ['Pedro Santos', 'pedro@email.com', bcrypt.hashSync('123456', salt), '1982-11-30', '(11) 97777-7777', 'Palavra', permissoes]
         ];
 
-        membrosExemplo.forEach(([nome, email, senha, data_nascimento, telefone, funcao]) => {
+        membrosExemplo.forEach(([nome, email, senha, data_nascimento, telefone, funcao, permissoes]) => {
             this.db.get("SELECT * FROM membros WHERE email = ?", [email], (err, row) => {
                 if (!row) {
                     this.db.run(
-                        "INSERT INTO membros (nome, email, senha, data_nascimento, telefone, funcao, data_cadastro) VALUES (?, ?, ?, ?, ?, ?, ?)",
-                        [nome, email, senha, data_nascimento, telefone, funcao, new Date().toISOString().split('T')[0]]
+                        "INSERT INTO membros (nome, email, senha, data_nascimento, telefone, funcao, permissoes, data_cadastro) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                        [nome, email, senha, data_nascimento, telefone, funcao, permissoes, new Date().toISOString().split('T')[0]]
                     );
                 }
             });
@@ -132,10 +199,10 @@ class Database {
         this.db.get("SELECT * FROM escalas", (err, row) => {
             if (!row) {
                 const escalas = [
-                    ['2025-03-02', '19:00', 'Abertura', 4, null],
-                    ['2025-03-02', '19:00', 'Dízimo', 5, null],
-                    ['2025-03-02', '19:00', 'Palavra', 3, null],
-                    ['2025-03-02', '19:00', 'Recepção', 1, 2],
+                    ['2025-03-09', '19:00', 'Abertura', 1, null],
+                    ['2025-03-09', '19:00', 'Dízimo', 2, null],
+                    ['2025-03-09', '19:00', 'Palavra', 3, null],
+                    ['2025-03-09', '19:00', 'Recepção', 1, 2],
                 ];
 
                 escalas.forEach(([data, horario, funcao, membro1, membro2]) => {
@@ -151,8 +218,8 @@ class Database {
         this.db.get("SELECT * FROM avisos", (err, row) => {
             if (!row) {
                 const avisos = [
-                    ['Culto de Celebração', 'Neste domingo teremos um culto especial com a participação do grupo musical.', 'alta', new Date().toISOString().split('T')[0], 'Secretaria'],
-                    ['Reunião de Oração', 'Toda quarta-feira às 20h. Sua presença é importante!', 'media', new Date().toISOString().split('T')[0], 'Pastor'],
+                    ['Culto de Celebração', 'Neste domingo teremos um culto especial!', 'alta', new Date().toISOString().split('T')[0], 'Secretaria'],
+                    ['Reunião de Oração', 'Toda quarta-feira às 20h.', 'media', new Date().toISOString().split('T')[0], 'Pastor'],
                 ];
 
                 avisos.forEach(([titulo, mensagem, importancia, data, autor]) => {
@@ -168,8 +235,8 @@ class Database {
         this.db.get("SELECT * FROM eventos", (err, row) => {
             if (!row) {
                 const eventos = [
-                    ['Culto de Domingo', '2025-03-02', '19:00', 'Culto de celebração com Santa Ceia', 'Templo Principal'],
-                    ['Escola Bíblica', '2025-03-05', '20:00', 'Estudo do livro de Romanos', 'Sala 2'],
+                    ['Culto de Domingo', '2025-03-09', '19:00', 'Culto de celebração', 'Templo Principal'],
+                    ['Escola Bíblica', '2025-03-12', '20:00', 'Estudo de Romanos', 'Sala 2'],
                 ];
 
                 eventos.forEach(([titulo, data, horario, descricao, local]) => {
@@ -182,16 +249,25 @@ class Database {
         });
 
         // Configurações
-        this.db.get("SELECT * FROM configuracoes WHERE chave = 'proximo_culto'", (err, row) => {
-            if (!row) {
-                this.db.run(
-                    "INSERT INTO configuracoes (chave, valor) VALUES (?, ?)",
-                    ['proximo_culto', 'Domingo, 19:00']
-                );
-            }
+        const configuracoes = [
+            ['proximo_culto', 'Domingo, 19:00'],
+            ['nome_igreja', 'CEA Betel Bertioga'],
+            ['pix', 'chave-pix@ceabetel.com.br']
+        ];
+
+        configuracoes.forEach(([chave, valor]) => {
+            this.db.get("SELECT * FROM configuracoes WHERE chave = ?", [chave], (err, row) => {
+                if (!row) {
+                    this.db.run(
+                        "INSERT INTO configuracoes (chave, valor) VALUES (?, ?)",
+                        [chave, valor]
+                    );
+                }
+            });
         });
     }
 
+    // Métodos auxiliares
     query(sql, params = []) {
         return new Promise((resolve, reject) => {
             this.db.all(sql, params, (err, rows) => {

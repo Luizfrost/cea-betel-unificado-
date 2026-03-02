@@ -113,7 +113,7 @@ const AppMembro = {
             <div class="login-container">
                 <div class="login-card">
                     <h2>🌟 CEA Betel</h2>
-                    <div class="subtitle">Comunidade Evangélica Ágape</div>
+                    <div class="subtitle">Comunidade Evangélica Apostólica</div>
                     
                     <div class="input-group">
                         <label><i class="fas fa-envelope"></i> E-mail</label>

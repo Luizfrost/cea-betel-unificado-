@@ -167,60 +167,7 @@ const Admin = {
         `;
     },
 
-    renderizarInterface() {
-        document.getElementById('app').innerHTML = `
-            <div class="painel-container">
-                <div class="sidebar">
-                    <div class="sidebar-header">
-                        <h2>🔧 CEA Betel</h2>
-                        <p>Painel Administrativo</p>
-                    </div>
-                    
-                    <div class="sidebar-menu">
-                        <div class="menu-item ${this.telaAtual === 'dashboard' ? 'active' : ''}" onclick="Admin.mudarTela('dashboard')">
-                            <i class="fas fa-home"></i> Dashboard
-                        </div>
-                        <div class="menu-item ${this.telaAtual === 'membros' ? 'active' : ''}" onclick="Admin.mudarTela('membros')">
-                            <i class="fas fa-users"></i> Membros
-                        </div>
-                        <div class="menu-item ${this.telaAtual === 'escalas' ? 'active' : ''}" onclick="Admin.mudarTela('escalas')">
-                            <i class="fas fa-calendar-alt"></i> Escalas
-                        </div>
-                        <div class="menu-item ${this.telaAtual === 'avisos' ? 'active' : ''}" onclick="Admin.mudarTela('avisos')">
-                            <i class="fas fa-bullhorn"></i> Avisos
-                        </div>
-                        <div class="menu-item ${this.telaAtual === 'eventos' ? 'active' : ''}" onclick="Admin.mudarTela('eventos')">
-                            <i class="fas fa-calendar-check"></i> Eventos
-                        </div>
-                        <div class="menu-item ${this.telaAtual === 'configuracoes' ? 'active' : ''}" onclick="Admin.mudarTela('configuracoes')">
-                            <i class="fas fa-cog"></i> Configurações
-                        </div>
-                    </div>
-                    
-                    <div class="sidebar-footer">
-                        <div class="user-info">
-                            <div class="user-avatar">A</div>
-                            <div class="user-details">
-                                <div class="user-name">${this.admin.nome}</div>
-                                <div class="user-role">Administrador</div>
-                            </div>
-                        </div>
-                        <button class="logout-btn" onclick="Admin.logout()">
-                            <i class="fas fa-sign-out-alt"></i> Sair
-                        </button>
-                    </div>
-                </div>
-                
-                <div class="main-content" id="mainContent">
-                    ${this.renderizarTelaAtual()}
-                </div>
-            </div>
-            
-            <div class="modal" id="modal">
-                <div class="modal-content" id="modalContent"></div>
-            </div>
-        `;
-    },
+    
 
     mudarTela(tela) {
         this.telaAtual = tela;
@@ -736,3 +683,99 @@ const Admin = {
 // Inicializar
 Admin.init();
 window.Admin = Admin;
+
+// ========== ROTAS ADMIN - CONFIGURAÇÕES ==========
+
+// Mudar senha do admin
+app.post('/api/admin/alterar-senha', autenticarAdmin, async (req, res) => {
+    const { senhaAtual, novaSenha } = req.body;
+    
+    try {
+        const admin = await db.get("SELECT * FROM admin WHERE id = ?", [req.admin.id]);
+        
+        const senhaValida = bcrypt.compareSync(senhaAtual, admin.senha);
+        if (!senhaValida) {
+            return res.status(401).json({ erro: 'Senha atual incorreta' });
+        }
+        
+        const salt = bcrypt.genSaltSync(10);
+        const hash = bcrypt.hashSync(novaSenha, salt);
+        
+        await db.run("UPDATE admin SET senha = ? WHERE id = ?", [hash, req.admin.id]);
+        
+        // Log da ação
+        await db.run(
+            "INSERT INTO logs (usuario, acao, data, hora) VALUES (?, ?, ?, ?)",
+            [req.admin.usuario, 'Alterou a própria senha', new Date().toISOString().split('T')[0], new Date().toTimeString().split(' ')[0]]
+        );
+        
+        res.json({ success: true, mensagem: 'Senha alterada com sucesso!' });
+    } catch (error) {
+        res.status(500).json({ erro: 'Erro ao alterar senha' });
+    }
+});
+
+// Gerenciar permissões dos membros
+app.get('/api/admin/membros/:id/permissoes', autenticarAdmin, async (req, res) => {
+    try {
+        const membro = await db.get("SELECT id, nome, email, permissoes FROM membros WHERE id = ?", [req.params.id]);
+        res.json({
+            id: membro.id,
+            nome: membro.nome,
+            email: membro.email,
+            permissoes: JSON.parse(membro.permissoes)
+        });
+    } catch (error) {
+        res.status(500).json({ erro: 'Erro ao buscar permissões' });
+    }
+});
+
+app.put('/api/admin/membros/:id/permissoes', autenticarAdmin, async (req, res) => {
+    const { permissoes } = req.body;
+    
+    try {
+        await db.run(
+            "UPDATE membros SET permissoes = ? WHERE id = ?",
+            [JSON.stringify(permissoes), req.params.id]
+        );
+        
+        res.json({ success: true, mensagem: 'Permissões atualizadas!' });
+    } catch (error) {
+        res.status(500).json({ erro: 'Erro ao atualizar permissões' });
+    }
+});
+
+// Configurar PIX da igreja
+app.get('/api/admin/pix', autenticarAdmin, async (req, res) => {
+    try {
+        const pix = await db.get("SELECT valor FROM configuracoes WHERE chave = 'pix'");
+        res.json({ pix: pix?.valor || '' });
+    } catch (error) {
+        res.status(500).json({ erro: 'Erro ao buscar PIX' });
+    }
+});
+
+app.post('/api/admin/pix', autenticarAdmin, async (req, res) => {
+    const { pix } = req.body;
+    
+    try {
+        await db.run(
+            "INSERT OR REPLACE INTO configuracoes (chave, valor) VALUES (?, ?)",
+            ['pix', pix]
+        );
+        
+        res.json({ success: true, mensagem: 'PIX atualizado com sucesso!' });
+    } catch (error) {
+        res.status(500).json({ erro: 'Erro ao salvar PIX' });
+    }
+});
+
+// Visualizar logs
+app.get('/api/admin/logs', autenticarAdmin, async (req, res) => {
+    try {
+        const logs = await db.query("SELECT * FROM logs ORDER BY data DESC, hora DESC LIMIT 100");
+        res.json(logs);
+    } catch (error) {
+        res.status(500).json({ erro: 'Erro ao buscar logs' });
+    }
+});
